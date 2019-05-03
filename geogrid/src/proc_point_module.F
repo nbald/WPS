@@ -20,7 +20,9 @@ module proc_point_module
    use source_data_module
  
    ! Information about which tile is in memory
-   integer :: src_min_x, src_max_x, src_min_y, src_max_y, src_min_z, src_max_z, src_npts_bdr
+   integer :: src_min_x, src_max_x, src_min_y, src_max_y, src_min_z, src_max_z, &
+              src_npts_bdr_x_start, src_npts_bdr_x_end, src_npts_bdr_y_start, &
+              src_npts_bdr_y_end
    integer :: src_level
    character (len=128) :: src_fieldname
    character (len=256) :: src_fname
@@ -139,7 +141,8 @@ module proc_point_module
       ! Assume source data is on unstaggered grid; specify M for istagger argument
       call get_data_tile(rlat, rlon, ilevel, fieldname, &
                          src_fname, src_array, src_min_x, src_max_x, src_min_y, &
-                         src_max_y, src_min_z, src_max_z, src_npts_bdr, &
+                         src_max_y, src_min_z, src_max_z, src_npts_bdr_x_start, &
+                         src_npts_bdr_x_end, src_npts_bdr_y_start, src_npts_bdr_y_end, &
                          istatus)
   
       src_fieldname = fieldname
@@ -157,8 +160,8 @@ module proc_point_module
       end do
 
       call process_categorical_block(src_array, istagger, where_maps_to, &
-                              src_min_x+src_npts_bdr, src_min_y+src_npts_bdr, src_min_z, &
-                              src_max_x-src_npts_bdr, src_max_y-src_npts_bdr, src_max_z, &
+                              src_min_x+src_npts_bdr_x_start, src_min_y+src_npts_bdr_y_start, src_min_z, &
+                              src_max_x-src_npts_bdr_x_end, src_max_y-src_npts_bdr_y_end, src_max_z, &
                               array, start_i, end_i, start_j, end_j, start_k, end_k, &
                               processed_pts, new_pts, ilevel, rsr_x, rsr_y, msgval, maskval)
 
@@ -507,7 +510,8 @@ module proc_point_module
       ! Assume source data is on unstaggered grid; specify M for istagger argument
       call get_data_tile(rlat, rlon, ilevel, fieldname, &
                          src_fname, src_array, src_min_x, src_max_x, src_min_y, &
-                         src_max_y, src_min_z, src_max_z, src_npts_bdr, &
+                         src_max_y, src_min_z, src_max_z, src_npts_bdr_x_start, &
+                         src_npts_bdr_x_end, src_npts_bdr_y_start, src_npts_bdr_y_end, &
                          istatus)
   
       src_fieldname = fieldname
@@ -531,8 +535,8 @@ module proc_point_module
       end do
   
       call process_continuous_block(src_array, istagger, where_maps_to, &
-                               src_min_x+src_npts_bdr, src_min_y+src_npts_bdr, src_min_z, &
-                               src_max_x-src_npts_bdr, src_max_y-src_npts_bdr, src_max_z, &
+                               src_min_x+src_npts_bdr_x_start, src_min_y+src_npts_bdr_y_start, src_min_z, &
+                               src_max_x-src_npts_bdr_x_end, src_max_y-src_npts_bdr_y_end, src_max_z, &
                                array, n, start_i, end_i, start_j, end_j, start_k, end_k, &
                                processed_pts, new_pts, ilevel, rsr_x, rsr_y, msgval, maskval)
   
@@ -830,7 +834,8 @@ module proc_point_module
   
          call get_data_tile(rlat, rlon, ilevel, fieldname, &
                             src_fname, src_array, src_min_x, src_max_x, src_min_y, &
-                            src_max_y, src_min_z, src_max_z, src_npts_bdr, &
+                            src_max_y, src_min_z, src_max_z, src_npts_bdr_x_start, &
+                            src_npts_bdr_x_end, src_npts_bdr_y_start, src_npts_bdr_y_end, &
                             istatus)
    
          src_fieldname = fieldname
@@ -920,13 +925,13 @@ module proc_point_module
       call lltoxy(rlat, rlon, rx, ry, M)
       call select_domain(current_domain)
   
-  !    if (real(src_min_x+src_npts_bdr) <= rx .and. rx <= real(src_max_x-src_npts_bdr) .and. &
-  !        real(src_min_y+src_npts_bdr) <= ry .and. ry <= real(src_max_y-src_npts_bdr)) then
+  !    if (real(src_min_x+src_npts_bdr_x_start) <= rx .and. rx <= real(src_max_x-src_npts_bdr_x_end) .and. &
+  !        real(src_min_y+src_npts_bdr_y_start) <= ry .and. ry <= real(src_max_y-src_npts_bdr_y_end)) then
 ! BUG 2006-06-01
-!      if (src_min_x+src_npts_bdr <= ceiling(rx) .and. floor(rx) <= src_max_x-src_npts_bdr .and. &
-!          src_min_y+src_npts_bdr <= ceiling(ry) .and. floor(ry) <= src_max_y-src_npts_bdr) then
-      if (src_min_x+src_npts_bdr <= floor(rx+0.5) .and. ceiling(rx-0.5) <= src_max_x-src_npts_bdr .and. &
-          src_min_y+src_npts_bdr <= floor(ry+0.5) .and. ceiling(ry-0.5) <= src_max_y-src_npts_bdr) then
+!      if (src_min_x+src_npts_bdr_x_start <= ceiling(rx) .and. floor(rx) <= src_max_x-src_npts_bdr_x_end .and. &
+!          src_min_y+src_npts_bdr_y_start <= ceiling(ry) .and. floor(ry) <= src_max_y-src_npts_bdr_x_end) then
+      if (src_min_x+src_npts_bdr_x_start <= floor(rx+0.5) .and. ceiling(rx-0.5) <= src_max_x-src_npts_bdr_x_end .and. &
+          src_min_y+src_npts_bdr_y_start <= floor(ry+0.5) .and. ceiling(ry-0.5) <= src_max_y-src_npts_bdr_y_end) then
          is_point_in_tile = .true.
       else
          is_point_in_tile = .false.

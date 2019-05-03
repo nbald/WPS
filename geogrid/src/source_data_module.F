@@ -29,6 +29,8 @@ module source_data_module
    integer, pointer, dimension(:) :: source_proj, source_wordsize, source_endian, source_fieldtype, &
                   source_dest_fieldtype, source_priority, source_tile_x, source_tile_y, &
                   source_tile_z, source_tile_z_start, source_tile_z_end, source_tile_bdr, &
+                  source_tile_bdr_x_start, source_tile_bdr_x_end, source_tile_bdr_y_start, &
+                  source_tile_bdr_y_end, &
                   source_category_min, source_category_max, source_smooth_option, &
                   source_smooth_passes, source_output_stagger, source_row_order, &
                   source_filename_digits
@@ -42,7 +44,8 @@ module source_data_module
    character (len=128) :: source_mminlu
    logical, pointer, dimension(:) :: is_proj, is_wordsize, is_endian, is_fieldtype, &
                   is_dest_fieldtype, is_priority, is_tile_x, is_tile_y, is_tile_z, &
-                  is_tile_z_start, is_tile_z_end, is_tile_bdr, is_category_min, &
+                  is_tile_z_start, is_tile_z_end, is_tile_bdr, is_tile_bdr_y_start, is_tile_bdr_y_end, &
+                  is_tile_bdr_x_start,  is_tile_bdr_x_end, is_category_min, &
                   is_category_max, is_masked, &
                   is_dx, is_dy, is_known_x, is_known_y, &
                   is_known_lat, is_known_lon, is_truelat1, is_truelat2, is_stdlon, &
@@ -155,6 +158,10 @@ module source_data_module
       allocate(source_category_min(num_entries))
       allocate(source_category_max(num_entries))
       allocate(source_tile_bdr(num_entries))
+      allocate(source_tile_bdr_x_start(num_entries))
+      allocate(source_tile_bdr_x_end(num_entries))
+      allocate(source_tile_bdr_y_start(num_entries))
+      allocate(source_tile_bdr_y_end(num_entries))
       allocate(source_masked(num_entries))
       allocate(source_output_stagger(num_entries))
       allocate(source_row_order(num_entries))
@@ -208,6 +215,10 @@ module source_data_module
       allocate(is_category_min(num_entries))
       allocate(is_category_max(num_entries))
       allocate(is_tile_bdr(num_entries))
+      allocate(is_tile_bdr_x_start(num_entries))
+      allocate(is_tile_bdr_x_end(num_entries))
+      allocate(is_tile_bdr_y_start(num_entries))
+      allocate(is_tile_bdr_y_end(num_entries))
       allocate(is_masked(num_entries))
       allocate(is_halt_missing(num_entries))
       allocate(is_output_stagger(num_entries))
@@ -257,6 +268,10 @@ module source_data_module
       source_category_min=0
       source_category_max=0
       source_tile_bdr=0
+      source_tile_bdr_x_start=0
+      source_tile_bdr_x_end=0
+      source_tile_bdr_y_start=0
+      source_tile_bdr_y_end=0
       source_masked=0
       source_output_stagger=0
       source_row_order=0
@@ -300,6 +315,10 @@ module source_data_module
       is_category_min=.false.
       is_category_max=.false.
       is_tile_bdr=.false.
+      is_tile_bdr_x_start=.false.
+      is_tile_bdr_x_end=.false.
+      is_tile_bdr_y_start=.false.
+      is_tile_bdr_y_end=.false.
       is_masked=.false.
       is_halt_missing=.false.
       is_output_stagger=.false.
@@ -765,6 +784,10 @@ module source_data_module
          is_category_min(idx) = .false.
          is_category_max(idx) = .false.
          is_tile_bdr(idx)     = .false.
+         is_tile_bdr_x_start(idx) = .false.
+         is_tile_bdr_x_end(idx) = .false.
+         is_tile_bdr_y_start(idx) = .false.
+         is_tile_bdr_y_end(idx) = .false.
          is_fieldname(idx)    = .false.
          is_scale_factor(idx) = .false.
          is_units(idx)        = .false.
@@ -1096,6 +1119,22 @@ module source_data_module
                      is_tile_bdr(idx) = .true.
                      read(buffer(i+1:eos-1),'(i10)') source_tile_bdr(idx)
         
+                  else if (index('tile_bdr_x_start',trim(buffer(1:i-1))) /= 0) then
+                     is_tile_bdr_x_start(idx) = .true.
+                     read(buffer(i+1:eos-1),'(i10)') source_tile_bdr_x_start(idx)
+
+                  else if (index('tile_bdr_x_end',trim(buffer(1:i-1))) /= 0) then
+                     is_tile_bdr_x_end(idx) = .true.
+                     read(buffer(i+1:eos-1),'(i10)') source_tile_bdr_x_end(idx)
+
+                  else if (index('tile_bdr_y_start',trim(buffer(1:i-1))) /= 0) then
+                     is_tile_bdr_y_start(idx) = .true.
+                     read(buffer(i+1:eos-1),'(i10)') source_tile_bdr_y_start(idx)
+
+                  else if (index('tile_bdr_y_end',trim(buffer(1:i-1))) /= 0) then
+                     is_tile_bdr_y_end(idx) = .true.
+                     read(buffer(i+1:eos-1),'(i10)') source_tile_bdr_y_end(idx)
+
                   else if (index('missing_value',trim(buffer(1:i-1))) /= 0) then
                      is_missing_value(idx) = .true.
                      read(buffer(i+1:eos-1),*) source_missing_value(idx)
@@ -1215,6 +1254,10 @@ module source_data_module
          deallocate(source_tile_z_end)
          deallocate(source_filename_digits)
          deallocate(source_tile_bdr)
+         deallocate(source_tile_bdr_x_start)
+         deallocate(source_tile_bdr_x_end)
+         deallocate(source_tile_bdr_y_start)
+         deallocate(source_tile_bdr_y_end)
          deallocate(source_category_min)
          deallocate(source_category_max)
          deallocate(source_masked)
@@ -1268,6 +1311,10 @@ module source_data_module
          deallocate(is_tile_z_start)
          deallocate(is_tile_z_end)
          deallocate(is_tile_bdr)
+         deallocate(is_tile_bdr_x_start)
+         deallocate(is_tile_bdr_x_end)
+         deallocate(is_tile_bdr_y_start)
+         deallocate(is_tile_bdr_y_end)
          deallocate(is_category_min)
          deallocate(is_category_max)
          deallocate(is_masked)
@@ -2825,8 +2872,8 @@ module source_data_module
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    subroutine get_data_tile(xlat, xlon, ilevel, field_name, &
                             file_name, array, start_x_dim, end_x_dim, start_y_dim, &
-                            end_y_dim, start_z_dim, end_z_dim, npts_bdr, &
-                            istatus)
+                            end_y_dim, start_z_dim, end_z_dim, npts_bdr_x_start, &
+                            npts_bdr_x_end, npts_bdr_y_start,  npts_bdr_y_end, istatus)
  
       implicit none
   
@@ -2836,7 +2883,10 @@ module source_data_module
       integer, intent(out) :: start_x_dim, end_x_dim, &
                               start_y_dim, end_y_dim, &
                               start_z_dim, end_z_dim, &
-                              npts_bdr
+                              npts_bdr_x_start, &
+                              npts_bdr_x_end, &
+                              npts_bdr_y_start, &
+                              npts_bdr_y_end
       real, intent(in) :: xlat, xlon         ! Location that tile should contain
       real, pointer, dimension(:,:,:) :: array  ! The array to be allocated by this routine
       character (len=128), intent(in) :: field_name
@@ -2860,7 +2910,8 @@ module source_data_module
       end if
   
       call get_tile_dimensions(xlat, xlon, start_x_dim, end_x_dim, start_y_dim, end_y_dim, &
-                      start_z_dim, end_z_dim, npts_bdr, local_wordsize, local_endian, &
+                      start_z_dim, end_z_dim, npts_bdr_x_start, npts_bdr_x_end, &
+                      npts_bdr_y_start, npts_bdr_y_end, local_wordsize, local_endian, &
                       sign_convention, ilevel, field_name, istatus)
   
       xdim = (end_x_dim-start_x_dim+1)
@@ -2941,7 +2992,8 @@ module source_data_module
    ! Name: get_tile_dimensions
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    subroutine get_tile_dimensions(xlat, xlon, start_x_dim, end_x_dim, start_y_dim, end_y_dim, &
-                        start_z_dim, end_z_dim, npts_bdr, bytes_per_datum, endianness, &
+                        start_z_dim, end_z_dim, npts_bdr_x_start, npts_bdr_x_end, npts_bdr_y_start, &
+                        npts_bdr_y_end, bytes_per_datum, endianness, &
                         sign_convention, ilevel, fieldnm, istatus)
  
       use llxy_module
@@ -2953,7 +3005,10 @@ module source_data_module
       integer, intent(out) :: start_x_dim, end_x_dim, &
                               start_y_dim, end_y_dim, &
                               start_z_dim, end_z_dim, &
-                              npts_bdr, &
+                              npts_bdr_x_start, &
+                              npts_bdr_x_end, &
+                              npts_bdr_y_start, &
+                              npts_bdr_y_end, &
                               bytes_per_datum, endianness, &
                               sign_convention, istatus
       real, intent(in) :: xlat, xlon
@@ -3011,16 +3066,38 @@ module source_data_module
          end if 
       end if
   
+      npts_bdr_x_start = 0
+      npts_bdr_x_end = 0
+      npts_bdr_y_start = 0
+      npts_bdr_y_end = 0
+
       if (is_tile_bdr(idx)) then
-         npts_bdr = source_tile_bdr(idx)
-      else
-         npts_bdr = 0
+         npts_bdr_x_start = source_tile_bdr(idx)
+         npts_bdr_x_end = source_tile_bdr(idx)
+         npts_bdr_y_start = source_tile_bdr(idx)
+         npts_bdr_y_end = source_tile_bdr(idx)
+      end if
+
+      if (is_tile_bdr_x_start(idx)) then
+         npts_bdr_x_start = source_tile_bdr_x_start(idx)
+      end if
+
+      if (is_tile_bdr_x_end(idx)) then
+         npts_bdr_x_end = source_tile_bdr_x_end(idx)
+      end if
+
+      if (is_tile_bdr_y_start(idx)) then
+         npts_bdr_y_start = source_tile_bdr_y_start(idx)
+      end if
+
+      if (is_tile_bdr_y_end(idx)) then
+         npts_bdr_y_end = source_tile_bdr_y_end(idx)
       end if
   
-      start_x_dim = start_x_dim - npts_bdr
-      end_x_dim = end_x_dim + npts_bdr
-      start_y_dim = start_y_dim - npts_bdr
-      end_y_dim = end_y_dim + npts_bdr
+      start_x_dim = start_x_dim - npts_bdr_x_start
+      end_x_dim = end_x_dim + npts_bdr_x_end
+      start_y_dim = start_y_dim - npts_bdr_y_start
+      end_y_dim = end_y_dim + npts_bdr_y_end
   
       if (is_wordsize(idx)) then
          bytes_per_datum = source_wordsize(idx)
